@@ -179,5 +179,10 @@ $db->prepare("UPDATE pastes SET current_views = current_views + 1 WHERE identifi
 ![微信图片_20241016031626.png][1]
 ![微信图片_20241016034750.png][2]
 
+[1]: https://www.1042.net/usr/uploads/2024/10/4143077100.png
+
+[2]: https://www.1042.net/usr/uploads/2024/10/2863209767.png
+
+
 ## 6. 安装
 下载文件并上传至网站根目录解压即可
