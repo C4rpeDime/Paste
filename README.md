@@ -6,6 +6,14 @@
 $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'zip']; // 允许的文件类型
 ```
 修改可上传文件类型，文件上传后会在服务器中留存，请勿用于非法用途。
+
+![wx.jpg](https://md5.li/static/images/wx.jpg)
+
+更多内容请关注微信公众号
+
+[身份证号码第十八位计算方式](https://mp.weixin.qq.com/s/nKlC7aVKGeTFk48qBGA4IQ)
+
+[自建MD5解密平台](https://mp.weixin.qq.com/s/J1wP_AQv2J4WAL9BdM7MXA)
 ## 1. 平台简介
 
 “阅后即焚”平台的核心功能是允许用户创建临时的文本内容，并在设定条件满足后销毁这些内容。用户可以通过时间或最大访问次数来控制内容的存活时间。该平台还支持对内容设置访问密码以增强隐私性。
