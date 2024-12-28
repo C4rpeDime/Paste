@@ -15,6 +15,21 @@ require 'config.php';
     <link rel="stylesheet" href="//cdn.staticfile.net/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="//cdn.staticfile.net/twitter-bootstrap/4.6.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://1.1042.net/static/css/style.css?v=1002">
+    <style>
+        .alert-custom {
+            margin-top: 20px;
+        }
+        #main {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: calc(100vh - 100px); /* 使内容垂直居中，减去底部版权的高度 */
+        }
+        footer {
+            text-align: center; /* 使底部版权信息居中 */
+            padding: 10px 0; /* 添加一些内边距 */
+        }
+    </style>
 </head>
 <body>
   <nav class="navbar sticky-top navbar-expand-lg navbar-light bg-white border-bottom" id="navbar">
@@ -26,10 +41,8 @@ require 'config.php';
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      
         <ul class="navbar-nav ml-auto">
-               <li class="nav-item"><a class="nav-link" href="/">首页</a></li>
-         
+            <li class="nav-item"><a class="nav-link" href="/">首页</a></li>
         </ul>
       </div>
     </div>
@@ -40,39 +53,52 @@ require 'config.php';
       <div class="col-12 mt-0 mt-sm-3">
         <div class="container">
           <h1 class="mt-5"><?php echo SITE_TITLE; ?> - 阅后即焚</h1>
-         <form id="pasteForm">
-    <div class="form-group">
-        <label for="content">内容</label>
-        <textarea class="form-control" id="content" name="content" rows="5" required></textarea>
-    </div>
-    <div class="form-group">
-        <label for="password">密码（可选）</label>
-        <input type="text" class="form-control" id="password" name="password">
-    </div>
-    <div class="form-group">
-        <label>过期设置</label>
-        <div class="form-row">
-            <div class="col-md-6">
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="expire_condition" value="time" id="expireConditionTime" checked>
-                    <label class="form-check-label" for="expireConditionTime">销毁时间（分钟）</label>
-                    <input type="number" name="expiration_minutes" class="form-control mt-2" placeholder="例如: 60">
+          
+          <!-- 提示框 -->
+          <div class="alert alert-warning alert-custom" role="alert">
+              文件上传后会在服务器中留存，请勿用于非法用途。
+          </div>
+
+          <form id="pasteForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="content">内容</label>
+                <textarea class="form-control" id="content" name="content" rows="5" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="password">密码（可选）</label>
+                <input type="text" class="form-control" id="password" name="password">
+            </div>
+            <div class="form-group">
+                <label>过期设置</label>
+                <div class="form-row">
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="expire_condition" value="time" id="expireConditionTime" checked>
+                            <label class="form-check-label" for="expireConditionTime">销毁时间（分钟）</label>
+                            <input type="number" name="expiration_minutes" class="form-control mt-2" placeholder="例如: 60">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="expire_condition" value="views" id="expireConditionViews">
+                            <label class="form-check-label" for="expireConditionViews">最大访问次数</label>
+                            <input type="number" name="max_views" class="form-control mt-2" placeholder="例如: 10">
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="expire_condition" value="views" id="expireConditionViews">
-                    <label class="form-check-label" for="expireConditionViews">最大访问次数</label>
-                    <input type="number" name="max_views" class="form-control mt-2" placeholder="例如: 10">
-                </div>
+            <div class="form-group">
+                <label for="file">文件（可选）</label>
+                <input type="file" class="form-control" id="file" name="file">
             </div>
-        </div>
-    </div>
-    <div class="form-group">
-        <button type="submit" class="btn btn-primary">创建<?php echo SITE_TITLE; ?></button>
-        <button type="button" id="copyButton" class="btn btn-secondary ml-3" style="display:none;">复制<?php echo SITE_TITLE; ?></button>
-    </div>
-</form>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">创建<?php echo SITE_TITLE; ?></button>
+                <button type="button" id="copyButton" class="btn btn-secondary ml-3" style="display:none;">复制<?php echo SITE_TITLE; ?></button>
+            </div>
+            <div class="progress" style="display:none;">
+              <div class="progress-bar" role="progressbar" style="width: 0%;" id="uploadProgress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+          </form>
 
           <div id="result" class="mt-4"></div>
         </div>
@@ -97,13 +123,31 @@ require 'config.php';
     }
     fix_footer();
 
-        $('#pasteForm').submit(function(e) {
+    $('#pasteForm').submit(function(e) {
         e.preventDefault();
+
+        var formData = new FormData(this);
+        var progressBar = $('#uploadProgress');
+        $('.progress').show(); // 显示进度条
 
         $.ajax({
             type: 'POST',
             url: 'create_paste.php',
-            data: $(this).serialize(),
+            data: formData,
+            contentType: false,
+            processData: false,
+            xhr: function() {
+                var xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener("progress", function(evt) {
+                    if (evt.lengthComputable) {
+                        var percentComplete = evt.loaded / evt.total * 100;
+                        progressBar.css('width', percentComplete + '%');
+                        progressBar.attr('aria-valuenow', percentComplete);
+                        progressBar.text(Math.round(percentComplete) + '%');
+                    }
+                }, false);
+                return xhr;
+            },
             success: function(response) {
                 let resultDiv = $('#result');
                 resultDiv.empty(); // 清空之前的错误信息
@@ -136,6 +180,12 @@ require 'config.php';
                     resultDiv.text('<?php echo SITE_TITLE; ?>创建失败: ' + response.message);
                     $('#copyButton').hide(); // 隐藏复制按钮
                 }
+            },
+            complete: function() {
+                $('.progress').hide(); // 隐藏进度条
+                progressBar.css('width', '0%'); // 重置进度条
+                progressBar.attr('aria-valuenow', 0);
+                progressBar.text('');
             }
         });
     });

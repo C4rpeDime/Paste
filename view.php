@@ -17,7 +17,7 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
 try {
     $db = connect();
     $stmt = $db->prepare("
-        SELECT content, password, expiration_minutes, max_views, current_views, created_at
+        SELECT content, password, expiration_minutes, max_views, current_views, created_at, file_path
         FROM pastes
         WHERE identifier = :identifier
     ");
@@ -89,6 +89,10 @@ try {
         // 更新查看次数
         $db->prepare("UPDATE pastes SET current_views = current_views + 1 WHERE identifier = :identifier")->execute([':identifier' => $identifier]);
 
+        // 构建下载链接
+        $baseUrl = (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'];
+        $downloadLink = $baseUrl . '/uploads/' . basename($paste['file_path']); // 构建下载链接
+
         // 显示内容
         ?>
         <!DOCTYPE html>
@@ -104,6 +108,9 @@ try {
                 <div class="card-header">查看内容</div>
                 <div class="card-body">
                     <pre><?php echo htmlspecialchars($paste['content']); ?></pre>
+                    <?php if ($paste['file_path']): ?>
+                        <a href="<?php echo htmlspecialchars($downloadLink); ?>" class="btn btn-primary" download>下载文件</a>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

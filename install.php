@@ -35,7 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 max_views INT,
                 current_views INT DEFAULT 0,
                 identifier VARCHAR(16) NOT NULL UNIQUE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                file_path VARCHAR(255) DEFAULT NULL
             )
         ";
         $db->exec($query);
